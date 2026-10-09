@@ -168,12 +168,14 @@ def estimate_coupling_barriers(n, p, n_runs, rng, sigma=0.0, tolerance=1e-6):
 
 def plot_coupling_barriers(
     coupling_data,
+    sizes=None,
     save_path=None,
     show=False,
 ):
     """Plot coupling-to-energy-barrier ratios for all available (N, P)."""
 
-    sizes = sorted({n for n, p in coupling_data})
+    if sizes is None:
+        sizes = sorted({n for n, p in coupling_data})
 
     colors = [
         "#0072B2",
@@ -294,6 +296,7 @@ def main():
 
     plot_coupling_barriers(
         coupling_data,
+        sizes=sizes,
         save_path=ROOT / "figures" / "dimer_coupling_barriers.pdf",
     )
 
