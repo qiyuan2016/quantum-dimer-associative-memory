@@ -4,83 +4,28 @@ Requires NumPy and Matplotlib. Run: python dimer_error_rate.py
 """
 
 import pickle
-from collections import defaultdict
 from itertools import combinations
-from math import prod
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-
-def bond(a, b):
-    """Canonical representation of an unordered singlet bond."""
-    return tuple(sorted((int(a), int(b))))
-
-
-def bond_pair(first, second):
-    """Canonical representation of two unordered bonds."""
-    return tuple(sorted((first, second)))
-
-
-def number_of_matchings(n):
-    """Number of perfect matchings on n labeled spins."""
-    if n < 0 or n % 2:
-        raise ValueError("n must be a nonnegative even integer")
-    return prod(range(1, n, 2))
-
-
-def generate_pairings(n, count, rng):
-    """Draw count distinct uniformly random perfect matchings."""
-    if n < 2 or n % 2:
-        raise ValueError("n must be even and at least 2")
-    if not 1 <= count <= number_of_matchings(n):
-        raise ValueError("count exceeds the number of available matchings")
-
-    seen = set()
-    memories = []
-    while len(memories) < count:
-        permutation = rng.permutation(n)
-        pairing = tuple(
-            sorted(bond(permutation[k], permutation[k + 1]) for k in range(0, n, 2))
-        )
-        if pairing not in seen:
-            seen.add(pairing)
-            memories.append(pairing)
-    return memories
-
-
-def partner_map(pairing):
-    """Map each spin to its singlet partner in a dimer covering."""
-    partners = {}
-    for a, b in pairing:
-        partners[a] = b
-        partners[b] = a
-    return partners
-
-
-def second_order_coefficients(memories, sigma=0.0, rng=None):
-    """Compute second-order Hamiltonian coefficients.
-
-    Each memory has weight 1 when sigma=0.
-    Otherwise, positive Gaussian weights are sampled.
-    """
-    coefficients = defaultdict(float)
-
-    if sigma > 0 and rng is None:
-        rng = np.random.default_rng()
-
-    for pairing in memories:
-        weight = 1.0
-
-        if sigma > 0:
-            weight = rng.normal(1.0, sigma)
-            while weight < 1e-6:
-                weight = rng.normal(1.0, sigma)
-
-        for first, second in combinations(pairing, 2):
-            coefficients[bond_pair(first, second)] += weight
-
-    return coefficients
+try:
+    from .dimer_utils import (
+        bond,
+        bond_pair,
+        generate_pairings,
+        partner_map,
+        second_order_coefficients,
+    )
+except ImportError:
+    from dimer_utils import (
+        bond,
+        bond_pair,
+        generate_pairings,
+        partner_map,
+        second_order_coefficients,
+    )
 
 
 def energy_difference(i, j, pairing, partners, coefficients):
@@ -208,10 +153,13 @@ def plot_error_rates(error_rates, n_runs, sizes=None, save_path=None, show=True)
     return fig, ax
 
 
+ROOT = Path(__file__).resolve().parent.parent
+
+
 def main():
-    sizes = (16, 20, 24, 28)
+    sizes = (16,)
     ps = {
-        16: [1, *range(2, 280, 6)],
+        16: [1, *range(2, 10, 6)],
         20: [1, *range(2, 550, 10)],
         24: [1, *range(2, 940, 16)],
         28: [1, *range(2, 1480, 24)],
@@ -219,7 +167,8 @@ def main():
     n_runs = 2000
     sigma = 0.0
     seed = 12345
-    output = "../data/dimer_error_rates.pkl"
+    output = ROOT / "data" / "dimer_error_rates1.pkl"
+    output.parent.mkdir(parents=True, exist_ok=True)
 
     rng = np.random.default_rng(seed)
     error_rates = {}
@@ -236,7 +185,10 @@ def main():
             print(f"N: {n}, P: {p}, error rate: {rate}", flush=True)
 
     plot_error_rates(
-        error_rates, n_runs, sizes=sizes, save_path="../figures/dimer_error_rates.pdf"
+        error_rates,
+        n_runs,
+        sizes=sizes,
+        save_path=ROOT / "figures" / "dimer_error_rates1.pdf",
     )
 
 
