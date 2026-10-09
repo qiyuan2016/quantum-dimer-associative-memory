@@ -99,7 +99,7 @@ def estimate_error_rate(n, p, n_runs, rng, sigma=0.0, tolerance=1e-8):
     return rate, standard_error
 
 
-def plot_error_rates(error_rates, n_runs, sizes=None, save_path=None, show=True):
+def plot_error_rates(error_rates, n_runs, sizes=None, save_path=None, show=False):
     """Plot instability probabilities against P/N^3 with binomial error bars.
 
     Only available (N, P) results are plotted, allowing partial runs.
@@ -147,6 +147,8 @@ def plot_error_rates(error_rates, n_runs, sizes=None, save_path=None, show=True)
         spine.set_linewidth(1)
 
     if save_path is not None:
+        save_path = Path(save_path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_path)
     if show:
         plt.show()
@@ -167,7 +169,7 @@ def main():
     n_runs = 2000
     sigma = 0.0
     seed = 12345
-    output = ROOT / "data" / "dimer_error_rates1.pkl"
+    output = ROOT / "data" / "dimer_error_rates.pkl"
     output.parent.mkdir(parents=True, exist_ok=True)
 
     rng = np.random.default_rng(seed)
@@ -184,11 +186,14 @@ def main():
 
             print(f"N: {n}, P: {p}, error rate: {rate}", flush=True)
 
+    # with (ROOT / "data" / "dimer_error_rates.pkl").open("rb") as f:
+    #     error_rates = pickle.load(f)
+
     plot_error_rates(
         error_rates,
         n_runs,
         sizes=sizes,
-        save_path=ROOT / "figures" / "dimer_error_rates1.pdf",
+        save_path=ROOT / "figures" / "dimer_error_rates.pdf",
     )
 
 
