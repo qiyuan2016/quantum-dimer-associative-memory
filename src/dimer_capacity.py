@@ -1,6 +1,6 @@
 """Estimate capacity using the instability error rate.
 
-Requires NumPy and Matplotlib. Run: python dimer_capacity.py
+Requires NumPy, Matplotlib and SciPy. Run: python dimer_capacity.py
 """
 
 import pickle
